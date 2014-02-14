@@ -1,0 +1,114 @@
+// FrameWork Script
+//
+// copyright pug games 2014
+// please feel free to use this script, change it, add to it in any way you feel
+// Script created by Roll20 user Konrad J.
+
+// these are the CONSTANTS for the FrameWork functions
+var fwCONSTANTS = {
+    SCRIPTCOMMAND : "!!",
+    COMMANDSEPERATOR : " ",
+    GMIDS : ["77736"]
+};
+
+// these are the Globals for the FrameWork functions
+var fwGlobal = {
+	logToConsoleOn : true
+};
+
+function fwLogToConsole(logMsg){
+	if (fwGlobal.logToConsoleOn === true) {
+		log(logMsg);
+	}
+}
+
+function fwIsGM(playerid) {
+	var player = getObj('player', playerid);
+	var d20userid = player.get('d20userid');
+	var test = false;
+	if (fwCONSTANTS.GMIDS.indexOf(d20userid) >= 0) {
+		test = true;
+	}
+	return test;
+}
+
+function fwFindCommand(commandStringToFind, commands) {
+	var i=0;
+	var len = commands.length;
+	var result = {
+		found : "false",
+		parm : ""
+	};
+	for (i; i<len; i++) {
+		if (commands[i].indexOf(commandStringToFind) === 0) {
+			result.found = true;
+			result.parm = commands[i].substr(commandStringToFind.length);
+			i=len;
+		}
+	}
+    fwLogToConsole(result);
+	return result; 
+}
+
+var processScriptTabs = function(msg) {
+    // this will run the various other scripts depending upon the chat
+    // window command.  Just add another Case statement to add a new command.
+
+    var chatCommand = msg.content;
+	var script = chatCommand.substr(0, chatCommand.indexOf(fwCONSTANTS.COMMANDSEPERATOR));
+	chatCommand = chatCommand.replace(script + fwCONSTANTS.COMMANDSEPERATOR, "");
+
+    switch(script) {
+    	case fwCONSTANTS.SCRIPTCOMMAND:
+			processToggleBookmark(chatCommand, msg);
+			break;
+    }
+};
+
+on("chat:message", function(msg) {
+    // returns the chat window command entered
+    if (msg.type != 'api') {
+        return;
+    }
+    return processScriptTabs(msg);
+});
+
+// Toggle Bookmark
+//
+// Toogle Bookmark will move the playerpageid bookmark to a default page and then back again.
+// Why do this?  One user was saying players screens go out of sync until he moves the bookmark.  So here it is.
+//
+// COMMANDS:
+//
+// !! log
+// this will log the current pageid to the console.  go to your first page or even just a blank page you will never use.
+// run this command.  Then copy the pageid from the console to the DEFAULTBOOKMARKPAGEID constants section.
+//
+// !! toggle
+// this will briefly change the bookmark pageid to your blank page and then back again.
+//
+//
+// This is where you would put the script's CONSTANTS
+var tbCONSTANTS = {
+	DEFAULTBOOKMARKPAGEID : "-JFiywE9KN3vy7IAUP0i",
+	MOVEBOOKMARKDELAY : 1000
+};
+
+// This is where you would put the script's Globals
+var tbGlobal = {
+};
+
+function processToggleBookmark(chatCommand, msg){
+	switch(chatCommand) {
+		case 'toggle':
+			var currentBookmarkPageID = Campaign().get("playerpageid");
+			Campaign().set("playerpageid", tbCONSTANTS.DEFAULTBOOKMARKPAGEID);
+			setTimeout(function() {
+				Campaign().set("playerpageid", currentBookmarkPageID);	
+			}, tbCONSTANTS.MOVEBOOKMARKDELAY);
+		break;
+		case 'log':
+			log(Campaign().get("playerpageid"));
+		break;
+	}
+}
