@@ -6,9 +6,9 @@
 
 // these are the CONSTANTS for the FrameWork functions
 var fwCONSTANTS = {
-    SCRIPTCOMMAND : "!!",
     COMMANDSEPERATOR : " ",
-    GMIDS : ["77736"]
+    GMIDS : ["77736"],
+    scdSCRIPTCOMMAND : "!!"
 };
 
 // these are the Globals for the FrameWork functions
@@ -16,7 +16,7 @@ var fwGlobal = {
 	logToConsoleOn : true
 };
 
-function fwLogToConsole(logMsg){
+function fwLtC(logMsg){
 	if (fwGlobal.logToConsoleOn === true) {
 		log(logMsg);
 	}
@@ -24,12 +24,14 @@ function fwLogToConsole(logMsg){
 
 function fwIsGM(playerid) {
 	var player = getObj('player', playerid);
-	var d20userid = player.get('d20userid');
-	var test = false;
+	var d20userid = player.get('_d20userid');
+	var IsGM = false;
+	
 	if (fwCONSTANTS.GMIDS.indexOf(d20userid) >= 0) {
-		test = true;
+		IsGM = true;
 	}
-	return test;
+	fwLtC("Is GM: " + IsGM);
+	return IsGM;
 }
 
 function fwFindCommand(commandStringToFind, commands) {
@@ -46,7 +48,7 @@ function fwFindCommand(commandStringToFind, commands) {
 			i=len;
 		}
 	}
-    fwLogToConsole(result);
+    fwLtC("Command: " + result);
 	return result; 
 }
 
@@ -58,9 +60,13 @@ var processScriptTabs = function(msg) {
 	var script = chatCommand.substr(0, chatCommand.indexOf(fwCONSTANTS.COMMANDSEPERATOR));
 	chatCommand = chatCommand.replace(script + fwCONSTANTS.COMMANDSEPERATOR, "");
 
+	fwLtC("Script: " + script);
+	fwLtC("Chat Command: " + chatCommand);
     switch(script) {
-    	case fwCONSTANTS.SCRIPTCOMMAND:
-			processToggleBookmark(chatCommand, msg);
+    	case fwCONSTANTS.scdSCRIPTCOMMAND:
+//			if (fwIsGM(msg.playerid) === true) {
+				processToggleBookmark(chatCommand, msg);
+//			}
 			break;
     }
 };
@@ -70,6 +76,7 @@ on("chat:message", function(msg) {
     if (msg.type != 'api') {
         return;
     }
+	fwLtC("Chat Msg: " + msg);
     return processScriptTabs(msg);
 });
 
